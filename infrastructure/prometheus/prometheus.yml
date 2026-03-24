@@ -1,0 +1,95 @@
+# =============================================================================
+# Configuration Prometheus – Tuuuur Merch Shop
+# =============================================================================
+# Scrape les métriques exposées par les services Quarkus (Micrometer/OpenMetrics)
+# et les métriques JVM Kafka.
+# =============================================================================
+
+global:
+  scrape_interval: 15s # Fréquence de collecte par défaut
+  evaluation_interval: 15s # Fréquence d'évaluation des règles d'alerte
+  scrape_timeout: 10s
+
+# ---------------------------------------------------------------------------
+# ALERTMANAGER  (optionnel – à configurer si on veut des alertes)
+# ---------------------------------------------------------------------------
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ['alertmanager:9093']
+
+# ---------------------------------------------------------------------------
+# JOBS DE SCRAPE
+# ---------------------------------------------------------------------------
+scrape_configs:
+  # -- Prometheus lui-même ---------------------------------------------------
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # -- ORDER SERVICE (Quarkus – port 8080) -----------------------------------
+  - job_name: "order-service"
+    metrics_path: "/q/metrics" # Chemin Quarkus par défaut pour Micrometer
+    scrape_interval: 10s
+    static_configs:
+      - targets: ["host.docker.internal:8080"]
+        labels:
+          application: "order-service"
+          env: "dev"
+
+  # -- GAME SYNC SERVICE (Quarkus – port 8081) --------------------------------
+  - job_name: "gamesync-service"
+    metrics_path: "/q/metrics"
+    scrape_interval: 10s
+    static_configs:
+      - targets: ["host.docker.internal:8081"]
+        labels:
+          application: "gamesync-service"
+          env: "dev"
+
+  # -- STOCK SERVICE (Quarkus – port 8082) ------------------------------------
+  - job_name: "stock-service"
+    metrics_path: "/q/metrics"
+    scrape_interval: 10s
+    static_configs:
+      - targets: ["host.docker.internal:8082"]
+        labels:
+          application: "stock-service"
+          env: "dev"
+
+  # -- PAYMENT SERVICE (Quarkus – port 8083) ----------------------------------
+  # Note: port 8083 = Kafka Connect dans le docker-compose.
+  # En prod changer ce port (ex: 8084)
+  - job_name: "payment-service"
+    metrics_path: "/q/metrics"
+    scrape_interval: 10s
+    static_configs:
+      - targets: ["host.docker.internal:8084"]
+        labels:
+          application: "payment-service"
+          env: "dev"
+
+  # -- ANALYTICS SERVICE (Quarkus – port 8085) --------------------------------
+  - job_name: "analytics-service"
+    metrics_path: "/q/metrics"
+    scrape_interval: 10s
+    static_configs:
+      - targets: ["host.docker.internal:8085"]
+        labels:
+          application: "analytics-service"
+          env: "dev"
+
+  # -- KAFKA BROKER JMX Metrics -----------------------------------------------
+  # (Nécessite l'activation du JMX Exporter dans le broker – port 9101)
+  - job_name: "kafka-broker"
+    scrape_interval: 30s
+    static_configs:
+      - targets: ["kafka:9101"]
+        labels:
+          application: "kafka-broker"
+
+  # -- KAFKA CONNECT ----------------------------------------------------------
+  # L'image confluent expose ses métriques JMX sur le port 9102 (si configuré)
+  # - job_name: 'kafka-connect'
+  #   static_configs:
+  #     - targets: ['kafka-connect:9102']

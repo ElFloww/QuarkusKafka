@@ -1,0 +1,21 @@
+{
+  "name": "tuuuur-analytics-filesink",
+  "config": {
+    "connector.class": "org.apache.kafka.connect.file.FileStreamSinkConnector",
+
+    "topics": "analytics-stats",
+
+    "file": "/kafka-connect-output/tuuuur-sales-stats.txt",
+
+    "tasks.max": "1",
+
+    "key.converter":   "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "org.apache.kafka.connect.storage.StringConverter",
+
+    "errors.tolerance":              "all",
+    "errors.deadletterqueue.topic.name": "analytics-stats-dlq",
+    "errors.deadletterqueue.topic.replication.factor": "1",
+    "errors.log.enable":             "true",
+    "errors.log.include.messages":   "true"
+  }
+}

@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tuuuur — Merch Shop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:         #09090f;
+      --bg2:        #111119;
+      --card:       #1c1c28;
+      --card-hover: #21212f;
+      --border:     rgba(255,255,255,.07);
+      --border-hi:  rgba(139,92,246,.4);
+      --purple:     #8b5cf6;
+      --purple-dim: #6d28d9;
+      --orange:     #f97316;
+      --orange-dim: #ea580c;
+      --cyan:       #22d3ee;
+      --green:      #22c55e;
+      --red:        #ef4444;
+      --yellow:     #eab308;
+      --text:       #f1f0ff;
+      --text-2:     #a09ec0;
+      --text-3:     #6b6988;
+      --radius-sm:  8px;
+      --radius:     14px;
+      --shadow:     0 8px 32px rgba(0,0,0,.5);
+      --shadow-p:   0 0 30px rgba(139,92,246,.15);
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.5;
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg2); }
+    ::-webkit-scrollbar-thumb { background: var(--purple-dim); border-radius: 3px; }
+
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(9,9,15,.88); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: .7rem 2rem; display: flex; align-items: center; gap: 1rem;
+    }
+    .nav-logo { display: flex; align-items: center; gap: .7rem; text-decoration: none; }
+    .nav-logo img { height: 34px; width: auto; }
+    .nav-logo .wordmark {
+      font-size: 1.35rem; font-weight: 700; letter-spacing: -.5px;
+      background: linear-gradient(135deg, #fff 30%, var(--purple));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .nav-badges { display: flex; gap: .45rem; }
+    .badge {
+      font-size: .62rem; font-weight: 700; letter-spacing: 1.2px;
+      text-transform: uppercase; padding: .22rem .6rem; border-radius: 20px;
+    }
+    .badge-p { background: rgba(139,92,246,.18); color: var(--purple); border: 1px solid rgba(139,92,246,.3); }
+    .badge-o { background: rgba(249,115,22,.18);  color: var(--orange); border: 1px solid rgba(249,115,22,.3); }
+    .nav-right { margin-left: auto; display: flex; align-items: center; gap: .9rem; }
+    .cart-btn {
+      display: flex; align-items: center; gap: .45rem;
+      background: var(--card); border: 1px solid var(--border-hi); color: var(--text);
+      padding: .42rem .95rem; border-radius: var(--radius-sm);
+      cursor: pointer; font: inherit; font-size: .88rem; font-weight: 600;
+      transition: background .15s, box-shadow .15s;
+    }
+    .cart-btn:hover { background: var(--card-hover); box-shadow: var(--shadow-p); }
+    #cartCount {
+      background: var(--orange); color: #fff; font-size: .65rem; font-weight: 700;
+      min-width: 18px; height: 18px; border-radius: 9px;
+      display: inline-flex; align-items: center; justify-content: center; padding: 0 4px;
+    }
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg, var(--bg2) 0%, rgba(109,40,217,.1) 60%, var(--bg2) 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 2.5rem 2rem; text-align: center;
+    }
+    .hero h1 { font-size: 2.1rem; font-weight: 700; letter-spacing: -1px; margin-bottom: .4rem; }
+    .hero h1 em { font-style: normal; color: var(--orange); }
+    .hero p { color: var(--text-2); font-size: .95rem; max-width: 460px; margin: 0 auto; }
+
+    /* LAYOUT */
+    .layout {
+      max-width: 1280px; margin: 0 auto; padding: 2rem 1.5rem;
+      display: grid; grid-template-columns: 1fr 350px; gap: 2rem; align-items: start;
+    }
+    @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } }
+
+    /* SECTION LABEL */
+    .sec-label {
+      font-size: .68rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--text-3); margin-bottom: 1.15rem;
+    }
+    .sec-label span { color: var(--purple); }
+
+    /* ITEM CARDS */
+    .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 1rem; }
+    .item-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1.2rem; display: flex; flex-direction: column; gap: .7rem;
+      transition: transform .2s, border-color .2s, box-shadow .2s;
+    }
+    .item-card:hover { transform: translateY(-3px); border-color: rgba(139,92,246,.35); box-shadow: var(--shadow-p); }
+    .item-card.in-cart { border-color: rgba(249,115,22,.4); box-shadow: 0 0 18px rgba(249,115,22,.1); }
+    .rank-tag {
+      display: inline-flex; align-items: center; gap: .3rem; width: fit-content;
+      font-size: .65rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+      padding: .22rem .65rem; border-radius: 20px;
+    }
+    .rank-BRONZE    { background: rgba(205,127,50,.2);   color: #cd7f32; border: 1px solid rgba(205,127,50,.4); }
+    .rank-ARGENT    { background: rgba(192,192,192,.18); color: #c0c0c0; border: 1px solid rgba(192,192,192,.35); }
+    .rank-OR        { background: rgba(255,215,0,.15);   color: #ffd700; border: 1px solid rgba(255,215,0,.35); }
+    .rank-PLATINE   { background: rgba(229,228,226,.12); color: #e2e1e0; border: 1px solid rgba(229,228,226,.3); }
+    .rank-DIAMANT   { background: rgba(34,211,238,.15);  color: #22d3ee; border: 1px solid rgba(34,211,238,.3); }
+    .rank-CHALLENGER{ background: linear-gradient(135deg,rgba(239,68,68,.2),rgba(234,179,8,.2)); color: #fbbf24; border: 1px solid rgba(251,191,36,.4); }
+    .item-card h3 { font-size: .92rem; font-weight: 600; line-height: 1.3; }
+    .item-card .desc { font-size: .78rem; color: var(--text-2); flex: 1; line-height: 1.5; }
+    .price { font-size: 1.45rem; font-weight: 700; }
+    .price small { font-size: .72rem; font-weight: 500; color: var(--text-2); }
+    .btn-add {
+      width: 100%; padding: .62rem;
+      background: linear-gradient(135deg, var(--purple-dim), var(--purple));
+      color: #fff; border: none; border-radius: var(--radius-sm);
+      cursor: pointer; font: inherit; font-size: .86rem; font-weight: 600;
+      transition: opacity .15s, transform .1s;
+      display: flex; align-items: center; justify-content: center; gap: .35rem;
+    }
+    .btn-add:hover { opacity: .88; }
+    .btn-add:active { transform: scale(.98); }
+    .btn-add.added { background: linear-gradient(135deg, var(--orange-dim), var(--orange)); }
+
+    /* ORDERS TABLE */
+    .orders-section { margin-top: 2rem; }
+    .table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+    thead th {
+      text-align: left; padding: .7rem 1rem; color: var(--text-3);
+      font-weight: 600; font-size: .65rem; text-transform: uppercase; letter-spacing: 1px;
+      background: var(--bg2); border-bottom: 1px solid var(--border);
+    }
+    tbody td { padding: .62rem 1rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: rgba(255,255,255,.02); }
+    .status-pill { display: inline-block; padding: .18rem .6rem; border-radius: 20px; font-size: .68rem; font-weight: 700; }
+    .status-PENDING        { background: rgba(234,179,8,.15);  color: var(--yellow); }
+    .status-RANK_VERIFIED  { background: rgba(34,211,238,.12); color: var(--cyan); }
+    .status-RANK_REJECTED  { background: rgba(239,68,68,.12);  color: var(--red); }
+    .status-STOCK_RESERVED { background: rgba(34,211,238,.12); color: var(--cyan); }
+    .status-STOCK_FAILED   { background: rgba(239,68,68,.12);  color: var(--red); }
+    .status-PAYMENT_FAILED { background: rgba(239,68,68,.12);  color: var(--red); }
+    .status-CONFIRMED      { background: rgba(34,197,94,.12);  color: var(--green); }
+    .empty-state { text-align: center; padding: 2rem; color: var(--text-3); font-size: .88rem; }
+    .btn-refresh {
+      margin-top: .7rem; padding: .38rem .85rem;
+      background: transparent; border: 1px solid var(--border); color: var(--text-2);
+      border-radius: var(--radius-sm); cursor: pointer; font: inherit; font-size: .76rem;
+      transition: border-color .15s, color .15s;
+    }
+    .btn-refresh:hover { border-color: var(--purple); color: var(--purple); }
+
+    /* SIDEBAR */
+    .sidebar { display: flex; flex-direction: column; gap: 1.1rem; }
+    .panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.3rem; }
+    .panel-title {
+      font-size: .67rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--text-3); margin-bottom: 1rem; padding-bottom: .7rem; border-bottom: 1px solid var(--border);
+    }
+
+    /* PLAYER FORM */
+    .form-group { margin-bottom: .85rem; }
+    .form-group label {
+      display: block; font-size: .68rem; font-weight: 600; color: var(--text-3);
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: .3rem;
+    }
+    .form-group input, .form-group select {
+      width: 100%; padding: .58rem .8rem; background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text); font: inherit; font-size: .88rem;
+      transition: border-color .15s;
+    }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--purple); }
+
+    /* CART */
+    .panel-cart { border-color: rgba(249,115,22,.22); }
+    .cart-title { color: var(--orange); border-bottom-color: rgba(249,115,22,.18); }
+    #cartEmpty { text-align: center; padding: .8rem 0; color: var(--text-3); font-size: .82rem; }
+    #cartEmpty span { display: block; font-size: 1.6rem; margin-bottom: .3rem; }
+    #cartItems { display: flex; flex-direction: column; gap: .5rem; }
+    .cart-item {
+      display: flex; align-items: center; gap: .55rem;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: .55rem .75rem;
+    }
+    .ci-info { flex: 1; min-width: 0; }
+    .ci-name { font-size: .8rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ci-price { font-size: .72rem; color: var(--orange); font-weight: 600; }
+    .cart-qty { display: flex; align-items: center; gap: .22rem; }
+    .qty-btn {
+      width: 21px; height: 21px; border-radius: 6px;
+      background: var(--card); border: 1px solid var(--border); color: var(--text);
+      cursor: pointer; font: inherit; font-size: .85rem; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color .1s;
+    }
+    .qty-btn:hover { border-color: var(--purple); }
+    .qty-num { min-width: 20px; text-align: center; font-size: .83rem; font-weight: 700; }
+    .ci-remove { background: none; border: none; color: var(--text-3); cursor: pointer; font-size: .9rem; padding: 0 .1rem; transition: color .1s; }
+    .ci-remove:hover { color: var(--red); }
+    .cart-total {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: .8rem 0 0; border-top: 1px solid var(--border); margin-top: .7rem;
+    }
+    .ct-label { color: var(--text-2); font-weight: 600; font-size: .88rem; }
+    .ct-amount { font-size: 1.2rem; font-weight: 700; color: var(--orange); }
+    .btn-checkout {
+      width: 100%; margin-top: .85rem; padding: .75rem;
+      background: linear-gradient(135deg, var(--orange-dim), var(--orange));
+      color: #fff; border: none; border-radius: var(--radius-sm);
+      cursor: pointer; font: inherit; font-size: .92rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; gap: .45rem;
+      transition: opacity .15s, transform .1s;
+    }
+    .btn-checkout:hover { opacity: .9; }
+    .btn-checkout:active { transform: scale(.99); }
+    .btn-checkout:disabled { opacity: .35; cursor: not-allowed; }
+    #checkoutFeedback { margin-top: .7rem; padding: .7rem; border-radius: var(--radius-sm); font-size: .8rem; display: none; }
+    .feedback-ok  { background: rgba(34,197,94,.1);  border: 1px solid rgba(34,197,94,.3);  color: var(--green); }
+    .feedback-err { background: rgba(239,68,68,.1);  border: 1px solid rgba(239,68,68,.3);  color: var(--red); }
+
+    /* OBS LINKS */
+    .obs-links { display: flex; flex-direction: column; gap: .4rem; }
+    .obs-link {
+      display: flex; align-items: center; gap: .55rem; padding: .48rem .7rem;
+      border-radius: var(--radius-sm); background: var(--bg2); border: 1px solid var(--border);
+      text-decoration: none; color: var(--text-2); font-size: .8rem;
+      transition: background .1s, border-color .1s, color .1s;
+    }
+    .obs-link:hover { background: var(--card-hover); border-color: var(--purple); color: var(--text); }
+
+    /* SAGA */
+    .saga-flow { font-size: .78rem; }
+    .saga-step { display: flex; align-items: flex-start; gap: .6rem; padding: .48rem 0; border-bottom: 1px solid var(--border); }
+    .saga-step:last-child { border-bottom: none; }
+    .saga-num {
+      width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+      background: rgba(139,92,246,.2); color: var(--purple);
+      font-size: .68rem; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: .1rem;
+    }
+    .saga-step.ok .saga-num { background: rgba(34,197,94,.2); color: var(--green); }
+    .saga-event { font-weight: 600; color: var(--text); }
+    .saga-topic { font-size: .7rem; color: var(--text-3); }
+
+    /* FOOTER */
+    footer { text-align: center; padding: 1.5rem; color: var(--text-3); font-size: .73rem; border-top: 1px solid var(--border); margin-top: .5rem; }
+    footer a { color: var(--purple); text-decoration: none; }
+
+    /* TOAST */
+    .toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 999;
+      background: var(--card); border: 1px solid var(--border-hi); border-radius: var(--radius);
+      padding: .7rem 1.1rem; font-size: .83rem; font-weight: 600; color: var(--text);
+      box-shadow: var(--shadow); display: flex; align-items: center; gap: .45rem;
+      transform: translateY(120%); opacity: 0; transition: transform .3s, opacity .3s;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="https://preprod.tuuuur.florent-dubut.fr/" target="_blank">
+    <img src="https://preprod.tuuuur.florent-dubut.fr/assets/logo-DJy_fW30.png" alt="Tuuuur"
+         onerror="this.style.display='none'" />
+    <span class="wordmark">Tuuuur</span>
+  </a>
+  <div class="nav-badges">
+    <span class="badge badge-p">Event-Driven</span>
+    <span class="badge badge-o">Kafka Saga</span>
+  </div>
+  <div class="nav-right">
+    <button class="cart-btn" onclick="scrollToCart()">
+      🛒 Panier <span id="cartCount">0</span>
+    </button>
+  </div>
+</nav>
+
+<div class="hero">
+  <h1>Boutique <em>Exclusive</em></h1>
+  <p>Merch réservé aux joueurs Tuuuur — débloquez des articles selon votre rang.</p>
+</div>
+
+<div class="layout">
+
+  <!-- LEFT -->
+  <div>
+    <p class="sec-label">✦ <span>Catalogue</span> — Articles disponibles</p>
+    <div class="catalog-grid">
+      {#for item in items}
+      <div class="item-card" id="card-{item.id}">
+        <span class="rank-tag rank-{item.requiredRank}">{item.requiredRank}</span>
+        <h3>{item.name}</h3>
+        <p class="desc">{item.description}</p>
+        <div class="price">{item.price}<small> €</small></div>
+        <button class="btn-add" id="btn-{item.id}"
+                onclick="addToCart('{item.id}', '{item.name}', {item.price}, '{item.requiredRank}')">
+          + Ajouter au panier
+        </button>
+      </div>
+      {/for}
+    </div>
+
+    <div class="orders-section">
+      <p class="sec-label">✦ <span>Commandes</span> — Suivi en temps réel</p>
+      <div class="table-wrap" id="ordersContainer">
+        {#if orders.isEmpty()}
+        <div class="empty-state">Aucune commande pour l'instant.</div>
+        {#else}
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>Joueur</th><th>Rang</th><th>Article</th>
+              <th>Qté</th><th>Montant</th><th>Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            {#for order in orders}
+            <tr>
+              <td style="font-family:monospace;font-size:.71rem;color:var(--text-3);">{order.orderId.substring(0, 8)}…</td>
+              <td style="font-weight:600;">{order.playerName}</td>
+              <td><span class="rank-tag rank-{order.playerRank}" style="font-size:.62rem;">{order.playerRank}</span></td>
+              <td>{order.itemName}</td>
+              <td style="text-align:center;color:var(--text-2);">{order.quantity}</td>
+              <td style="color:var(--orange);font-weight:700;">{order.totalAmount}€</td>
+              <td><span class="status-pill status-{order.status}">{order.status}</span></td>
+            </tr>
+            {/for}
+          </tbody>
+        </table>
+        {/if}
+      </div>
+      <button class="btn-refresh" onclick="refreshOrders()">↻ Rafraîchir</button>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebarCart">
+
+    <div class="panel">
+      <p class="panel-title">👤 Votre profil</p>
+      <div class="form-group">
+        <label>Pseudo</label>
+        <input type="text" id="playerName" placeholder="Kévin_Diamant" />
+      </div>
+      <div class="form-group">
+        <label>Identifiant</label>
+        <input type="text" id="playerId" value="player-42" />
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label>Rang actuel</label>
+        <select id="playerRank">
+          {#for rank in ranks}
+          <option value="{rank}">{rank}</option>
+          {/for}
+        </select>
+      </div>
+    </div>
+
+    <div class="panel panel-cart">
+      <p class="panel-title cart-title">🛒 Panier</p>
+      <div id="cartEmpty"><span>🛍️</span>Ajoutez des articles depuis le catalogue</div>
+      <div id="cartItems" style="display:none;"></div>
+      <div id="cartTotalBlock" style="display:none;">
+        <div class="cart-total">
+          <span class="ct-label">Total</span>
+          <span class="ct-amount" id="cartTotal">0€</span>
+        </div>
+        <button class="btn-checkout" id="btnCheckout" onclick="checkout()">
+          ⚡ Passer commande
+        </button>
+        <div id="checkoutFeedback"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <p class="panel-title">🔍 Observabilité</p>
+      <div class="obs-links">
+        <a class="obs-link" href="/q/metrics"              target="_blank"><span>📊</span> Métriques Prometheus</a>
+        <a class="obs-link" href="http://localhost:3000"   target="_blank"><span>📈</span> Grafana Dashboard</a>
+        <a class="obs-link" href="http://localhost:9090"   target="_blank"><span>🔥</span> Prometheus UI</a>
+        <a class="obs-link" href="http://localhost:8090"   target="_blank"><span>🗂️</span> Kafka UI</a>
+        <a class="obs-link" href="http://localhost:8083/connectors" target="_blank"><span>🔌</span> Kafka Connect</a>
+        <a class="obs-link" href="/q/dev"                  target="_blank"><span>🛠️</span> Quarkus Dev UI</a>
+      </div>
+    </div>
+
+    <div class="panel">
+      <p class="panel-title">⛓️ Saga Chorégraphiée</p>
+      <div class="saga-flow">
+        <div class="saga-step"><div class="saga-num">①</div><div><div class="saga-event">OrderCreated</div><div class="saga-topic">→ orders-events</div></div></div>
+        <div class="saga-step"><div class="saga-num">②</div><div><div class="saga-event">RankVerified</div><div class="saga-topic">→ rank-events</div></div></div>
+        <div class="saga-step"><div class="saga-num">③</div><div><div class="saga-event">StockReserved</div><div class="saga-topic">→ stock-events</div></div></div>
+        <div class="saga-step"><div class="saga-num">④</div><div><div class="saga-event">PaymentSucceeded</div><div class="saga-topic">→ payment-events</div></div></div>
+        <div class="saga-step ok"><div class="saga-num">✓</div><div><div class="saga-event" style="color:var(--green);">CONFIRMED</div><div class="saga-topic">Saga terminée</div></div></div>
+      </div>
+    </div>
+
+  </aside>
+</div>
+
+<footer>
+  Tuuuur Merch Shop &bull; Quarkus 3.9 + Apache Kafka &bull; UPJV INSSET M2
+  &bull; <a href="https://quarkus.io" target="_blank">Quarkus</a>
+  &bull; <a href="https://kafka.apache.org" target="_blank">Apache Kafka</a>
+  &bull; <a href="https://preprod.tuuuur.florent-dubut.fr" target="_blank">tuuuur.florent-dubut.fr</a>
+</footer>
+
+<div class="toast" id="toast"><span id="toastIcon">🛒</span><span id="toastMsg"></span></div>
+
+<script src="/shop.js"></script>
+</body>
+</html>

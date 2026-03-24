@@ -1,0 +1,22 @@
+# =============================================================================
+# Grafana Dashboard Provisioning
+# =============================================================================
+# Configure un dossier Grafana qui sera alimenté par les fichiers JSON
+# placés dans le répertoire ./grafana/provisioning/dashboards/
+#
+# Dashboard utilisé : ID 14370 (JVM Micrometer - Quarkus / Spring)
+# Importer manuellement via : Dashboards > Import > ID 14370
+# =============================================================================
+
+apiVersion: 1
+
+providers:
+  - name: "Tuuuur Dashboards"
+    orgId: 1
+    folder: "Tuuuur Merch"
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards

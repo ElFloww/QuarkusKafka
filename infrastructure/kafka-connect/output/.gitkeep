@@ -1,0 +1,3 @@
+# Ce répertoire reçoit les fichiers générés par le connecteur Kafka Connect FileStreamSink.
+# Il est monté dans le container kafka-connect via le volume docker-compose.
+# Le connecteur sera configuré à l'ÉTAPE 5.

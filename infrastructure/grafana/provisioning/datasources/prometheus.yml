@@ -1,0 +1,22 @@
+# =============================================================================
+# Grafana Datasource Provisioning – Prometheus
+# =============================================================================
+# Ce fichier configure automatiquement la source de données Prometheus
+# au démarrage du container Grafana.
+# =============================================================================
+
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    orgId: 1
+    url: http://prometheus:9090
+    basicAuth: false
+    isDefault: true
+    editable: true
+    jsonData:
+      httpMethod: POST
+      prometheusType: Prometheus
+      prometheusVersion: 2.51.0
