@@ -54,6 +54,33 @@ services:
       retries: 10
 
   # ---------------------------------------------------------------------------
+  # KAFKA TOPICS INITIALIZATION
+  # (Crée automatiquement tous les topics au démarrage du docker-compose)
+  # ---------------------------------------------------------------------------
+  kafka-init-topics:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: tuuuur-kafka-init-topics
+    networks:
+      - tuuuur-net
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: >
+      bash -c '
+      echo "Waiting for Kafka to be ready..." &&
+      sleep 10 &&
+      echo "Creating topics..." &&
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic orders-events --partitions 3 --replication-factor 1 &&
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rank-events --partitions 3 --replication-factor 1 &&
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic stock-events --partitions 3 --replication-factor 1 &&
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic payment-events --partitions 3 --replication-factor 1 &&
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic analytics-stats --partitions 1 --replication-factor 1 &&
+      echo "Listing created topics:" &&
+      kafka-topics --bootstrap-server kafka:29092 --list &&
+      echo "Topics initialization completed successfully!"
+      '
+
+  # ---------------------------------------------------------------------------
   # KAFKA UI  (outil visuel pour explorer topics, consumers, messages)
   # ---------------------------------------------------------------------------
   kafka-ui:
@@ -82,8 +109,8 @@ services:
     networks:
       - tuuuur-net
     depends_on:
-      kafka:
-        condition: service_healthy
+      kafka-init-topics:
+        condition: service_completed_successfully
     ports:
       - "8083:8083"
     environment:
