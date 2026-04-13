@@ -3,9 +3,11 @@ package upjv.insset.payment;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import io.quarkus.runtime.StartupEvent;
 import io.smallrye.reactive.messaging.annotations.Blocking;
 import io.smallrye.reactive.messaging.kafka.KafkaRecord;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
@@ -74,6 +76,17 @@ public class PaymentService {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // Vérification du démarrage
+    // ─────────────────────────────────────────────────────────────────────────
+
+    void onStart(@Observes StartupEvent event) {
+        LOG.infof("✅ [Payment] PaymentService bean initialized and ready to consume stock-in");
+        LOG.infof("   Consumer group: payment-service-grp");
+        LOG.infof("   Input topic: stock-events (channel: stock-in)");
+        LOG.infof("   Output topic: payment-events (channel: payment-out)");
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // CONSUMER : stock-events → simulation paiement → payment-events
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -91,15 +104,20 @@ public class PaymentService {
         LOG.infof("💳 [Payment] StockReserved reçu : orderId=%s | article=%s | montant=%.2f€",
                   event.orderId, event.itemName, event.quantity * event.unitPrice);
 
-        // Enregistrement de la durée grâce au Timer Micrometer
-        return CompletableFuture.runAsync(() -> simulatePaymentProcessing(event))
-                .thenCompose(v -> publishPaymentSucceeded(event, message))
-                .exceptionally(ex -> {
-                    LOG.errorf("  ❌ [Payment] Erreur inattendue pour orderId=%s : %s",
-                               event.orderId, ex.getMessage());
-                    message.nack(ex);
-                    return null;
-                });
+        try {
+            // Simulation du paiement (direct, pas de runAsync)
+            simulatePaymentProcessing(event);
+            
+            // Publication de PaymentSucceededEvent
+            publishPaymentSucceeded(event);
+            
+            LOG.infof("  ✅ [Payment] Cycle complet pour orderId=%s", event.orderId);
+            return message.ack();
+            
+        } catch (Exception ex) {
+            LOG.errorf("  ❌ [Payment] Erreur pour orderId=%s : %s", event.orderId, ex.getMessage());
+            return message.nack(ex);
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -129,8 +147,7 @@ public class PaymentService {
     // Publication de PaymentSucceededEvent
     // ─────────────────────────────────────────────────────────────────────────
 
-    private CompletionStage<Void> publishPaymentSucceeded(StockReservedEvent event,
-                                                           Message<StockReservedEvent> originalMessage) {
+    private void publishPaymentSucceeded(StockReservedEvent event) {
         // Génération d'un ID de transaction fictif (format TX-XXXXXXXX)
         String transactionId = "TX-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
@@ -138,15 +155,13 @@ public class PaymentService {
 
         paymentsProcessed.increment();
 
-        // En SmallRye 4.x (Quarkus 3.9+), send(Message) est void (fire-and-forget).
         try {
             paymentEmitter.send(KafkaRecord.of(event.orderId, paymentEvent));
             LOG.infof("  ✅ [Payment] PaymentSucceeded publié [orderId=%s | txId=%s | total=%.2f€]",
                       event.orderId, transactionId, paymentEvent.totalAmount);
-            return originalMessage.ack();
         } catch (Exception ex) {
             LOG.errorf("  ❌ [Payment] Échec publication PaymentSucceeded : %s", ex.getMessage());
-            return originalMessage.nack(ex);
+            throw ex;
         }
     }
 }
