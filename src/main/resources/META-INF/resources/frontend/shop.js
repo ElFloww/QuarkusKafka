@@ -212,4 +212,4 @@ function scrollToCart() {
 }
 
 // ── Auto-refresh ──────────────────────────────────────────────────
-setInterval(refreshOrders, 5000);
+setInterval(refreshOrders, 2000);
