@@ -1,0 +1,26 @@
+# Configuration for JMX Exporter (Prometheus)
+# Used to expose Kafka JMX metrics over HTTP on port 9101
+---
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+whitelistObjectNames:
+  # Kafka Broker metrics
+  - "kafka.server:type=BrokerTopicMetrics,name=*"
+  - "kafka.network:type=RequestMetrics,name=*"
+  - "kafka.network:type=SocketServer*"
+  - "kafka.controller:type=KafkaController,name=*"
+  - "kafka.server:type=ReplicaManager,name=*"
+  - "kafka.server:type=UnderReplicatedPartitions,name=*"
+  - "kafka.server:type=DelayedOperationPurgatory,name=*,clientSide=*"
+  - "kafka.tools:type=JmxTool,name=*"
+  - "kafka.log:type=Log,name=*,topic=*,partition=*"
+  - "kafka.controller:type=KafkaController,name=*"
+
+  # JVM metrics
+  - "java.lang:type=Runtime"
+  - "java.lang:type=Memory"
+  - "java.lang:type=GarbageCollector,name=*"
+  - "java.lang:type=Threading"
+
+  # Generic
+  - "*":
