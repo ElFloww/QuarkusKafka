@@ -1,5 +1,6 @@
 package upjv.insset.api.order;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import io.smallrye.reactive.messaging.annotations.Blocking;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -41,6 +42,9 @@ public class OrderSagaStatusUpdater {
     @Inject
     OrderRepository orderRepository;
 
+    @Inject
+    MeterRegistry meterRegistry;
+
     // ─────────────────────────────────────────────────────────────────────────
     // Observer rank-events → mise à jour statut RANK_VERIFIED / RANK_REJECTED
     // ─────────────────────────────────────────────────────────────────────────
@@ -56,6 +60,11 @@ public class OrderSagaStatusUpdater {
 
         orderRepository.updateStatus(event.orderId, newStatus);
         LOG.infof("📊 [StatusUpdater] Order %s → %s", event.orderId, newStatus);
+
+        // Track rank event processing
+        meterRegistry.counter("tuuuur.saga.rank.events",
+            "status", newStatus.toString(),
+            "consumer_group", "order-service-rank-observer").increment();
 
         return message.ack();
     }
@@ -73,6 +82,11 @@ public class OrderSagaStatusUpdater {
         orderRepository.updateStatus(event.orderId, OrderStatus.STOCK_RESERVED);
         LOG.infof("📊 [StatusUpdater] Order %s → STOCK_RESERVED (restant: %d)",
                   event.orderId, event.remainingStock);
+
+        // Track stock event processing
+        meterRegistry.counter("tuuuur.saga.stock.events",
+            "status", "reserved",
+            "consumer_group", "order-service-stock-observer").increment();
 
         return message.ack();
     }

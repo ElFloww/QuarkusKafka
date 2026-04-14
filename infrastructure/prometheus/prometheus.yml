@@ -40,3 +40,10 @@ scrape_configs:
           application: "tuuuur-merch"
           service_type: "quarkus"
           env: "dev"
+
+  # -- KAFKA BROKER JMX EXPORTERS (DISABLED FOR NOW) ----
+  # Priority: Quarkus application metrics are more important
+  # Can be re-enabled later with a stable container image
+  # - job_name: "kafka-broker-1"
+  # - job_name: "kafka-broker-2"
+  # - job_name: "kafka-broker-3"

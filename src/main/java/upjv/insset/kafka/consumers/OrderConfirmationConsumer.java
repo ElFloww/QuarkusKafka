@@ -1,5 +1,6 @@
 package upjv.insset.kafka.consumers;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import io.smallrye.reactive.messaging.annotations.Blocking;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -42,6 +43,9 @@ public class OrderConfirmationConsumer {
     @Inject
     OrderService orderService;
 
+    @Inject
+    MeterRegistry meterRegistry;
+
     /**
      * Consomme les événements PaymentSucceeded du topic payment-events.
      *
@@ -61,6 +65,10 @@ public class OrderConfirmationConsumer {
             orderService.confirmOrder(event.orderId, event.transactionId);
 
             // ack() : valide l'offset → Kafka sait que le message a été traité
+            meterRegistry.counter("tuuuur.confirmation.processed", 
+                "status", "success",
+                "consumer_group", "order-service-payment-grp").increment();
+
             return message.ack();
 
         } catch (Exception e) {
@@ -68,6 +76,10 @@ public class OrderConfirmationConsumer {
                        event.orderId, e.getMessage());
 
             // nack() : signale l'échec à SmallRye (peut router vers DLQ)
+            meterRegistry.counter("tuuuur.confirmation.processed", 
+                "status", "error",
+                "consumer_group", "order-service-payment-grp").increment();
+
             return message.nack(e);
         }
     }

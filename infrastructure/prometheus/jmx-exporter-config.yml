@@ -1,26 +1,76 @@
 # Configuration for JMX Exporter (Prometheus)
-# Used to expose Kafka JMX metrics over HTTP on port 9101
+# Exposes Kafka JMX metrics over HTTP on port 5556
+# Used for collecting Kafka broker metrics: throughput, replication lag, ISR changes, etc.
 ---
 lowercaseOutputName: true
 lowercaseOutputLabelNames: true
-whitelistObjectNames:
-  # Kafka Broker metrics
-  - "kafka.server:type=BrokerTopicMetrics,name=*"
-  - "kafka.network:type=RequestMetrics,name=*"
-  - "kafka.network:type=SocketServer*"
-  - "kafka.controller:type=KafkaController,name=*"
-  - "kafka.server:type=ReplicaManager,name=*"
-  - "kafka.server:type=UnderReplicatedPartitions,name=*"
-  - "kafka.server:type=DelayedOperationPurgatory,name=*,clientSide=*"
-  - "kafka.tools:type=JmxTool,name=*"
-  - "kafka.log:type=Log,name=*,topic=*,partition=*"
-  - "kafka.controller:type=KafkaController,name=*"
 
-  # JVM metrics
+whitelistObjectNames:
+  # ──────────────────────────────────────────────────────────────
+  # KAFKA BROKER - Topic Metrics
+  # ──────────────────────────────────────────────────────────────
+  - "kafka.server:type=BrokerTopicMetrics,name=*"
+  - "kafka.server:type=BrokerTopicMetrics,clientId=*,name=*"
+  - "kafka.server:type=BrokerTopicMetrics,clientId=*,name=BytesInPerSec"
+  - "kafka.server:type=BrokerTopicMetrics,clientId=*,name=BytesOutPerSec"
+  - "kafka.server:type=BrokerTopicMetrics,clientId=*,name=MessagesInPerSec"
+  - "kafka.server:type=BrokerTopicMetrics,clientId=*,name=ProduceLocalTimeMsMean"
+  - "kafka.server:type=BrokerTopicMetrics,clientId=*,name=FetchConsumerTotalTimeMs"
+  - "kafka.server:type=DelayedFetchMetrics,name=*,clientSide=consumer"
+  - "kafka.server:type=DelayedFetchMetrics,name=*,clientSide=follower"
+
+  # ──────────────────────────────────────────────────────────────
+  # KAFKA BROKER - Replication & ISR Management
+  # ──────────────────────────────────────────────────────────────
+  - "kafka.server:type=ReplicaManager,name=*"
+  - "kafka.server:type=ReplicaManager,name=LeaderCount"
+  - "kafka.server:type=ReplicaManager,name=PartitionCount"
+  - "kafka.server:type=ReplicaManager,name=UnderReplicatedPartitions"
+  - "kafka.server:type=ReplicaManager,name=IsrExpandsPerSec"
+  - "kafka.server:type=ReplicaManager,name=IsrShrinksPerSec"
+  - "kafka.server:type=UnderReplicatedPartitions,name=Value,clientId=*,topic=*,partition=*"
+
+  # ──────────────────────────────────────────────────────────────
+  # KAFKA BROKER - Network Request Metrics
+  # ──────────────────────────────────────────────────────────────
+  - "kafka.network:type=RequestMetrics,name=*,clientSide=*,apiName=*"
+  - "kafka.network:type=RequestMetrics,name=TotalTimeMs,request=*"
+  - "kafka.network:type=RequestMetrics,name=RequestsPerSec,request=*"
+  - "kafka.network:type=SocketServer*"
+  - "kafka.network:type=RequestMetrics,name=*"
+
+  # ──────────────────────────────────────────────────────────────
+  # KAFKA BROKER - Consumer Lag Tracking
+  # ──────────────────────────────────────────────────────────────
+  - "kafka.consumer:type=consumer-coordinator-metrics,client-id=*"
+  - "kafka.consumer:type=consumer-fetch-manager-metrics,client-id=*,topic=*,partition=*"
+
+  # ──────────────────────────────────────────────────────────────
+  # KAFKA CONTROLLER - KRaft Metrics
+  # ──────────────────────────────────────────────────────────────
+  - "kafka.controller:type=KafkaController,name=*"
+  - "kafka.controller:type=KafkaController,name=ActiveControllerCount"
+  - "kafka.controller:type=KafkaController,name=OfflinePartitionsCount"
+  - "kafka.controller:type=KafkaController,name=PreferredReplicaImbalanceCount"
+
+  # ──────────────────────────────────────────────────────────────
+  # KAFKA LOG - Per-partition Metrics
+  # ──────────────────────────────────────────────────────────────
+  - "kafka.log:type=Log,name=*,topic=*,partition=*"
+  - "kafka.log:type=LogCleaner,name=*"
+  - "kafka.log:type=LogCleanerManager,name=*"
+
+  # ──────────────────────────────────────────────────────────────
+  # JAVA VIRTUAL MACHINE - JVM Metrics
+  # ──────────────────────────────────────────────────────────────
   - "java.lang:type=Runtime"
   - "java.lang:type=Memory"
+  - "java.lang:type=MemoryPool,name=*"
   - "java.lang:type=GarbageCollector,name=*"
   - "java.lang:type=Threading"
+  - "java.lang:type=OperatingSystem"
 
-  # Generic
-  - "*":
+  # ──────────────────────────────────────────────────────────────
+  # CATCH-ALL - Any remaining metrics
+  # ──────────────────────────────────────────────────────────────
+  - "*"

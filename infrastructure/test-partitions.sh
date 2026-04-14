@@ -110,7 +110,7 @@ cmd_send_one() {
 cmd_send_bulk() {
   print_header "Envoyer 100 commandes en stress test"
   
-  COUNT=100
+  COUNT=100000
   TOTAL=0
   
   print_info "Envoi de $COUNT commandes ..."

@@ -1,0 +1,480 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "tuuuur-kafka-enhanced",
+    "title": "🔍 Tuuuur - Monitoring Complet (Kafka Cluster + Quarkus JVM)",
+    "tags": ["kafka", "cluster", "brokers", "quarkus", "jvm", "comprehensive"],
+    "timezone": "browser",
+    "schemaVersion": 30,
+    "version": 1,
+    "refresh": "5s",
+    "style": "dark",
+    "panels": [
+      {
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0},
+        "title": "📊 KAFKA CLUSTER STATUS",
+        "type": "row"
+      },
+      {
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 1},
+        "targets": [{"expr": "count(kafka_broker_info)", "refId": "A"}],
+        "title": "Active Brokers",
+        "type": "stat",
+        "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "yellow", "value": 2}, {"color": "green", "value": 3}]}}}
+      },
+      {
+        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 1},
+        "targets": [{"expr": "count(kafka_topic_partition_in_sync_replica)", "refId": "A"}],
+        "title": "Total Replicas In-Sync",
+        "type": "stat"
+      },
+      {
+        "gridPos": {"h": 4, "w": 6, "x": 12, "y": 1},
+        "targets": [{"expr": "count(kafka_topic_partitions)", "refId": "A"}],
+        "title": "Total Partitions",
+        "type": "stat"
+      },
+      {
+        "gridPos": {"h": 4, "w": 6, "x": 18, "y": 1},
+        "targets": [{"expr": "count(kafka_topic_partition_replica)", "refId": "A"}],
+        "title": "Total Replicas",
+        "type": "stat"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 5},
+        "title": "🖥️ BROKER METRICS (Kafka-Broker-1)",
+        "type": "row"
+      },
+      {
+        "gridPos": {"h": 6, "w": 6, "x": 0, "y": 6},
+        "targets": [
+          {"expr": "kafka_server_replica_manager_under_minIsr{job=~\"kafka-broker-1.*\"}", "legendFormat": "Under Min ISR", "refId": "A"},
+          {"expr": "kafka_server_replica_manager_total_logSize{job=~\"kafka-broker-1.*\"} / 1024 / 1024 / 1024", "legendFormat": "Log Size (GB)", "refId": "B"}
+        ],
+        "title": "Broker-1: Replicas Health",
+        "type": "timeseries"
+      },
+      {
+        "gridPos": {"h": 6, "w": 6, "x": 6, "y": 6},
+        "targets": [
+          {"expr": "rate(kafka_server_fetch_consumer_total_time_ms_sum{job=~\"kafka-broker-1.*\"}[1m])", "legendFormat": "Fetch Time", "refId": "A"},
+          {"expr": "rate(kafka_server_produce_total_time_ms_sum{job=~\"kafka-broker-1.*\"}[1m])", "legendFormat": "Produce Time", "refId": "B"}
+        ],
+        "title": "Broker-1: Request Latency (ms/s)",
+        "type": "timeseries"
+      },
+      {
+        "gridPos": {"h": 6, "w": 6, "x": 12, "y": 6},
+        "targets": [
+          {"expr": "rate(kafka_server_fetch_consumer_total_bytes_sum{job=~\"kafka-broker-1.*\"}[1m]) / 1024 / 1024", "legendFormat": "Fetch (MB/s)", "refId": "A"},
+          {"expr": "rate(kafka_server_produce_total_bytes_sum{job=~\"kafka-broker-1.*\"}[1m]) / 1024 / 1024", "legendFormat": "Produce (MB/s)", "refId": "B"}
+        ],
+        "title": "Broker-1: Throughput (MB/s)",
+        "type": "timeseries"
+      },
+      {
+        "gridPos": {"h": 6, "w": 6, "x": 18, "y": 6},
+        "targets": [
+          {"expr": "kafka_server_delayedoperationpurgatory_purgatorySize{job=~\"kafka-broker-1.*\"}", "legendFormat": "Delayed Ops", "refId": "A"},
+          {"expr": "kafka_server_controller_activeControllerCount{job=~\"kafka-broker-1.*\"}", "legendFormat": "Active Controller", "refId": "B"}
+        ],
+        "title": "Broker-1: Operations",
+        "type": "timeseries"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 12},
+        "title": "🖥️ BROKER METRICS (Kafka-Broker-2)",
+        "type": "row"
+      },
+      {
+        "gridPos": {"h": 6, "w": 6, "x": 0, "y": 13},
+        "targets": [
+          {"expr": "kafka_server_replica_manager_under_minIsr{job=~\"kafka-broker-2.*\"}", "legendFormat": "Under Min ISR", "refId": "A"},
+          {"expr": "kafka_server_replica_manager_total_logSize{job=~\"kafka-broker-2.*\"} / 1024 / 1024 / 1024", "legendFormat": "Log Size (GB)", "refId": "B"}
+        ],
+        "title": "Broker-2: Replicas Health",
+        "type": "timeseries"
+      },
+      {
+        "gridPos": {"h": 6, "w": 6, "x": 6, "y": 13},
+        "targets": [
+          {"expr": "rate(kafka_server_fetch_consumer_total_time_ms_sum{job=~\"kafka-broker-2.*\"}[1m])", "legendFormat": "Fetch Time", "refId": "A"},
+          {"expr": "rate(kafka_server_produce_total_time_ms_sum{job=~\"kafka-broker-2.*\"}[1m])", "legendFormat": "Produce Time", "refId": "B"}
+        ],
+        "title": "Broker-2: Request Latency (ms/s)",
+        "type": "timeseries"
+      },
+      {
+        "gridPos": {"h": 6, "w": 6, "x": 12, "y": 13},
+        "targets": [
+          {"expr": "rate(kafka_server_fetch_consumer_total_bytes_sum{job=~\"kafka-broker-2.*\"}[1m]) / 1024 / 1024", "legendFormat": "Fetch (MB/s)", "refId": "A"},
+          {"expr": "rate(kafka_server_produce_total_bytes_sum{job=~\"kafka-broker-2.*\"}[1m]) / 1024 / 1024", "legendFormat": "Produce (MB/s)", "refId": "B"}
+        ],
+        "title": "Broker-2: Throughput (MB/s)",
+        "type": "timeseries"
+      },
+      {
+        "gridPos": {"h": 6, "w": 6, "x": 18, "y": 13},
+        "targets": [
+          {"expr": "kafka_server_delayedoperationpurgatory_purgatorySize{job=~\"kafka-broker-2.*\"}", "legendFormat": "Delayed Ops", "refId": "A"},
+          {"expr": "kafka_server_controller_activeControllerCount{job=~\"kafka-broker-2.*\"}", "legendFormat": "Active Controller", "refId": "B"}
+        ],
+        "title": "Broker-2: Operations",
+        "type": "timeseries"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 19},
+        "title": "🖥️ BROKER METRICS (Kafka-Broker-3)",
+        "type": "row"
+      },
+      {
+        "gridPos": {"h": 6, "w": 6, "x": 0, "y": 20},
+        "targets": [
+          {"expr": "kafka_server_replica_manager_under_minIsr{job=~\"kafka-broker-3.*\"}", "legendFormat": "Under Min ISR", "refId": "A"},
+          {"expr": "kafka_server_replica_manager_total_logSize{job=~\"kafka-broker-3.*\"} / 1024 / 1024 / 1024", "legendFormat": "Log Size (GB)", "refId": "B"}
+        ],
+        "title": "Broker-3: Replicas Health",
+        "type": "timeseries"
+      },
+      {
+        "gridPos": {"h": 6, "w": 6, "x": 6, "y": 20},
+        "targets": [
+          {"expr": "rate(kafka_server_fetch_consumer_total_time_ms_sum{job=~\"kafka-broker-3.*\"}[1m])", "legendFormat": "Fetch Time", "refId": "A"},
+          {"expr": "rate(kafka_server_produce_total_time_ms_sum{job=~\"kafka-broker-3.*\"}[1m])", "legendFormat": "Produce Time", "refId": "B"}
+        ],
+        "title": "Broker-3: Request Latency (ms/s)",
+        "type": "timeseries"
+      },
+      {
+        "gridPos": {"h": 6, "w": 6, "x": 12, "y": 20},
+        "targets": [
+          {"expr": "rate(kafka_server_fetch_consumer_total_bytes_sum{job=~\"kafka-broker-3.*\"}[1m]) / 1024 / 1024", "legendFormat": "Fetch (MB/s)", "refId": "A"},
+          {"expr": "rate(kafka_server_produce_total_bytes_sum{job=~\"kafka-broker-3.*\"}[1m]) / 1024 / 1024", "legendFormat": "Produce (MB/s)", "refId": "B"}
+        ],
+        "title": "Broker-3: Throughput (MB/s)",
+        "type": "timeseries"
+      },
+      {
+        "gridPos": {"h": 6, "w": 6, "x": 18, "y": 20},
+        "targets": [
+          {"expr": "kafka_server_delayedoperationpurgatory_purgatorySize{job=~\"kafka-broker-3.*\"}", "legendFormat": "Delayed Ops", "refId": "A"},
+          {"expr": "kafka_server_controller_activeControllerCount{job=~\"kafka-broker-3.*\"}", "legendFormat": "Active Controller", "refId": "B"}
+        ],
+        "title": "Broker-3: Operations",
+        "type": "timeseries"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 26},
+        "title": "🌍 NETWORK I/O (All Brokers)",
+        "type": "row"
+      },
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 27},
+        "targets": [
+          {"expr": "sum(rate(kafka_network_socketserver_incoming_byte_total[1m])) by (job) / 1024 / 1024", "legendFormat": "{{job}} - In", "refId": "A"},
+          {"expr": "sum(rate(kafka_network_socketserver_outgoing_byte_total[1m])) by (job) / 1024 / 1024", "legendFormat": "{{job}} - Out", "refId": "B"}
+        ],
+        "title": "Network Bytes Per Broker (MB/s)",
+        "type": "timeseries"
+      },
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 27},
+        "targets": [
+          {"expr": "sum(rate(kafka_network_socketserver_active_connections[1m])) by (job)", "legendFormat": "{{job}} - Active", "refId": "A"},
+          {"expr": "sum(rate(kafka_network_socketserver_failed_connections_total[1m])) by (job)", "legendFormat": "{{job}} - Failed", "refId": "B"}
+        ],
+        "title": "Network Connections Per Broker",
+        "type": "timeseries"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 35},
+        "title": "📁 TOPICS & PARTITIONS",
+        "type": "row"
+      },
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 36},
+        "targets": [
+          {"expr": "sum by (topic) (kafka_topic_partition_leader_is_preferred)", "legendFormat": "{{topic}}", "refId": "A"}
+        ],
+        "title": "Preferred Leaders Per Topic",
+        "type": "timeseries"
+      },
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 36},
+        "targets": [
+          {"expr": "sum by (topic) (kafka_topic_partition_in_sync_replica)", "legendFormat": "{{topic}}", "refId": "A"}
+        ],
+        "title": "In-Sync Replicas Per Topic",
+        "type": "timeseries"
+      },
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 44},
+        "targets": [
+          {"expr": "sum by (topic) (kafka_topic_partition_replicas)", "legendFormat": "{{topic}}", "refId": "A"}
+        ],
+        "title": "Total Replicas Per Topic",
+        "type": "timeseries"
+      },
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 44},
+        "targets": [
+          {"expr": "sum by (topic) (increase(kafka_topic_partition_under_replicated_partitions[1m]))", "legendFormat": "{{topic}}", "refId": "A"}
+        ],
+        "title": "Under-Replicated Partitions Per Topic",
+        "type": "timeseries"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 52},
+        "title": "🔄 CONSUMER GROUPS",
+        "type": "row"
+      },
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 53},
+        "targets": [
+          {"expr": "kafka_consumer_group_lag", "legendFormat": "{{group}} - {{topic}}", "refId": "A"}
+        ],
+        "title": "Consumer Group Lag",
+        "type": "timeseries"
+      },
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 53},
+        "targets": [
+          {"expr": "kafka_consumer_group_members", "legendFormat": "{{group}}", "refId": "A"}
+        ],
+        "title": "Consumer Group Members",
+        "type": "timeseries"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 61},
+        "title": "💾 JVM MEMORY (All Brokers)",
+        "type": "row"
+      },
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 62},
+        "targets": [
+          {"expr": "sum by (job) (jvm_memory_used_bytes{area=\"heap\"}) / 1024 / 1024", "legendFormat": "{{job}} - Used", "refId": "A"},
+          {"expr": "sum by (job) (jvm_memory_max_bytes{area=\"heap\"}) / 1024 / 1024", "legendFormat": "{{job}} - Max", "refId": "B"}
+        ],
+        "title": "Heap Memory Per Broker (MB)",
+        "type": "timeseries"
+      },
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 62},
+        "targets": [
+          {"expr": "sum by (job) (jvm_memory_used_bytes{area=\"nonheap\"}) / 1024 / 1024", "legendFormat": "{{job}}", "refId": "A"}
+        ],
+        "title": "Non-Heap Memory Per Broker (MB)",
+        "type": "timeseries"
+      },
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 70},
+        "targets": [
+          {"expr": "sum by (job) (rate(jvm_gc_pause_seconds_sum[1m]))", "legendFormat": "{{job}}", "refId": "A"}
+        ],
+        "title": "GC Pause Time Per Broker (sec/s)",
+        "type": "timeseries"
+      },
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 70},
+        "targets": [
+          {"expr": "sum by (job) (rate(jvm_gc_pause_seconds_count[1m])) * 60", "legendFormat": "{{job}}", "refId": "A"}
+        ],
+        "title": "GC Count Per Broker (per minute)",
+        "type": "timeseries"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 78},
+        "title": "🔌 JVM THREADS (All Brokers)",
+        "type": "row"
+      },
+      {
+        "gridPos": {"h": 6, "w": 8, "x": 0, "y": 79},
+        "targets": [
+          {"expr": "sum by (job) (jvm_threads_live_threads)", "legendFormat": "{{job}}", "refId": "A"}
+        ],
+        "title": "Live Threads Per Broker",
+        "type": "timeseries"
+      },
+      {
+        "gridPos": {"h": 6, "w": 8, "x": 8, "y": 79},
+        "targets": [
+          {"expr": "sum by (job) (jvm_threads_peak_threads)", "legendFormat": "{{job}}", "refId": "A"}
+        ],
+        "title": "Peak Threads Per Broker",
+        "type": "timeseries"
+      },
+      {
+        "gridPos": {"h": 6, "w": 8, "x": 16, "y": 79},
+        "targets": [
+          {"expr": "sum by (job) (jvm_threads_daemon_threads)", "legendFormat": "{{job}}", "refId": "A"}
+        ],
+        "title": "Daemon Threads Per Broker",
+        "type": "timeseries"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 85},
+        "title": "📊 QUARKUS APP METRICS",
+        "type": "row"
+      },
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 86},
+        "targets": [
+          {"expr": "rate(http_server_requests_seconds_count[1m])", "legendFormat": "Requests/sec", "refId": "A"}
+        ],
+        "title": "HTTP Requests Per Second",
+        "type": "timeseries"
+      },
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 86},
+        "targets": [
+          {"expr": "histogram_quantile(0.95, rate(http_server_requests_seconds_bucket[1m]))", "legendFormat": "p95", "refId": "A"},
+          {"expr": "histogram_quantile(0.99, rate(http_server_requests_seconds_bucket[1m]))", "legendFormat": "p99", "refId": "B"}
+        ],
+        "title": "HTTP Latency Percentiles",
+        "type": "timeseries"
+      },
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 94},
+        "targets": [
+          {"expr": "http_server_errors_total", "legendFormat": "Total Errors", "refId": "A"}
+        ],
+        "title": "HTTP Errors",
+        "type": "stat"
+      },
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 94},
+        "targets": [
+          {"expr": "process_uptime_seconds / 3600", "legendFormat": "Uptime (hours)", "refId": "A"}
+        ],
+        "title": "Application Uptime",
+        "type": "stat"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 102},
+        "title": "🖥️ SYSTEM METRICS",
+        "type": "row"
+      },
+      {
+        "gridPos": {"h": 6, "w": 6, "x": 0, "y": 103},
+        "targets": [
+          {"expr": "process_cpu_usage * 100", "legendFormat": "CPU %", "refId": "A"}
+        ],
+        "title": "Process CPU Usage (%)",
+        "type": "gauge",
+        "fieldConfig": {"defaults": {"max": 100, "min": 0}}
+      },
+      {
+        "gridPos": {"h": 6, "w": 6, "x": 6, "y": 103},
+        "targets": [
+          {"expr": "process_resident_memory_bytes / 1024 / 1024", "legendFormat": "Memory (MB)", "refId": "A"}
+        ],
+        "title": "Process Memory (MB)",
+        "type": "gauge"
+      },
+      {
+        "gridPos": {"h": 6, "w": 6, "x": 12, "y": 103},
+        "targets": [
+          {"expr": "process_open_fds", "legendFormat": "Open FDs", "refId": "A"}
+        ],
+        "title": "Open File Descriptors",
+        "type": "stat"
+      },
+      {
+        "gridPos": {"h": 6, "w": 6, "x": 18, "y": 103},
+        "targets": [
+          {"expr": "jvm_classes_loaded_classes", "legendFormat": "Classes", "refId": "A"}
+        ],
+        "title": "JVM Classes Loaded",
+        "type": "stat"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 109},
+        "title": "⚡ REQUEST LATENCIES BREAKDOWN (Kafka)",
+        "type": "row"
+      },
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 110},
+        "targets": [
+          {"expr": "kafka_server_fetch_consumer_local_time_ms{job=~\"kafka.*\"}", "legendFormat": "{{job}} - Local Time", "refId": "A"},
+          {"expr": "kafka_server_fetch_consumer_remote_time_ms{job=~\"kafka.*\"}", "legendFormat": "{{job}} - Remote Time", "refId": "B"}
+        ],
+        "title": "Fetch Request Latency (ms)",
+        "type": "timeseries"
+      },
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 110},
+        "targets": [
+          {"expr": "kafka_server_produce_local_time_ms{job=~\"kafka.*\"}", "legendFormat": "{{job}} - Local Time", "refId": "A"},
+          {"expr": "kafka_server_produce_remote_time_ms{job=~\"kafka.*\"}", "legendFormat": "{{job}} - Remote Time", "refId": "B"}
+        ],
+        "title": "Produce Request Latency (ms)",
+        "type": "timeseries"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 118},
+        "title": "📈 REPLICATION & LEADERSHIP",
+        "type": "row"
+      },
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 119},
+        "targets": [
+          {"expr": "sum(kafka_topic_partition_leader) by (job)", "legendFormat": "{{job}} leaders", "refId": "A"}
+        ],
+        "title": "Leadership Distribution",
+        "type": "timeseries"
+      },
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 119},
+        "targets": [
+          {"expr": "sum(kafka_server_replicamanager_isr_shrinks_total)", "legendFormat": "ISR Shrinks", "refId": "A"},
+          {"expr": "sum(kafka_server_replicamanager_isr_expands_total)", "legendFormat": "ISR Expands", "refId": "B"}
+        ],
+        "title": "ISR Changes",
+        "type": "timeseries"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 127},
+        "title": "🔐 REQUEST RATES BY TYPE",
+        "type": "row"
+      },
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 128},
+        "targets": [
+          {"expr": "sum(rate(kafka_server_fetch_consumer_total_time_ms_count[1m]))", "legendFormat": "Fetch Consumer", "refId": "A"},
+          {"expr": "sum(rate(kafka_server_fetch_follower_total_time_ms_count[1m]))", "legendFormat": "Fetch Follower", "refId": "B"},
+          {"expr": "sum(rate(kafka_server_produce_total_time_ms_count[1m]))", "legendFormat": "Produce", "refId": "C"}
+        ],
+        "title": "Request Rate by Type (req/s)",
+        "type": "timeseries"
+      },
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 128},
+        "targets": [
+          {"expr": "sum(rate(kafka_server_fetch_consumer_total_bytes_sum[1m])) / 1024 / 1024", "legendFormat": "Fetch Consumer (MB/s)", "refId": "A"},
+          {"expr": "sum(rate(kafka_server_fetch_follower_total_bytes_sum[1m])) / 1024 / 1024", "legendFormat": "Fetch Follower (MB/s)", "refId": "B"},
+          {"expr": "sum(rate(kafka_server_produce_total_bytes_sum[1m])) / 1024 / 1024", "legendFormat": "Produce (MB/s)", "refId": "C"}
+        ],
+        "title": "Bytes Rate by Type (MB/s)",
+        "type": "timeseries"
+      }
+    ],
+    "templating": {
+      "list": []
+    }
+  },
+  "overwrite": true
+}

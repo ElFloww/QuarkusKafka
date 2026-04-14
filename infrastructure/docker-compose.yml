@@ -13,37 +13,37 @@ volumes:
 services:
 
   # ---------------------------------------------------------------------------
-  # KAFKA BROKER (KRaft mode - sans Zookeeper)
-  # Ce broker est utilisé par Kafka Connect et peut être utilisé par Quarkus
-  # en désactivant DevServices (quarkus.kafka.devservices.enabled=false)
+  # KAFKA BROKERS (KRaft mode - sans Zookeeper)
+  # Cluster de 3 brokers pour tester la réplication en local
   # ---------------------------------------------------------------------------
-  kafka:
+  kafka-broker-1:
     image: confluentinc/cp-kafka:7.6.0
-    container_name: tuuuur-kafka
-    hostname: kafka
+    container_name: tuuuur-kafka-1
+    hostname: kafka-broker-1
     networks:
       - tuuuur-net
     ports:
-      - "9092:9092"     # Accès depuis le host (Quarkus en mode non-devservices)
+      - "9092:9092"     # Accès depuis le host
       - "29092:29092"   # Accès inter-containers
       - "9101:9101"     # JMX Prometheus exporter
     environment:
-      # KRaft Configuration
-      CLUSTER_ID: rT63_zHrSiKRvyAuyi9IFA==  # UUID base64 valide pour KRaft
+      # KRaft Configuration - CLUSTER_ID partagé pour tous les brokers
+      CLUSTER_ID: rT63_zHrSiKRvyAuyi9IFA==
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      # Quorum voters: tous les 3 brokers participent au contrôle
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-broker-1:9093,2@kafka-broker-2:9093,3@kafka-broker-3:9093
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LISTENERS: PLAINTEXT://kafka:29092,EXTERNAL://0.0.0.0:9092,CONTROLLER://kafka:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,EXTERNAL://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://kafka-broker-1:29092,EXTERNAL://0.0.0.0:9092,CONTROLLER://kafka-broker-1:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-1:29092,EXTERNAL://localhost:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       # Broker Configuration
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'  # On utilisera l'Admin API
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
       # JMX pour Prometheus
       KAFKA_JMX_PORT: 9101
       KAFKA_JMX_HOSTNAME: localhost
@@ -53,9 +53,98 @@ services:
       timeout: 10s
       retries: 10
 
+  kafka-broker-2:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: tuuuur-kafka-2
+    hostname: kafka-broker-2
+    networks:
+      - tuuuur-net
+    ports:
+      - "9093:9092"     # Accès depuis le host (port décalé)
+      - "29093:29092"   # Accès inter-containers
+      - "9102:9101"     # JMX Prometheus exporter
+    environment:
+      # KRaft Configuration - CLUSTER_ID identique
+      CLUSTER_ID: rT63_zHrSiKRvyAuyi9IFA==
+      KAFKA_NODE_ID: 2
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-broker-1:9093,2@kafka-broker-2:9093,3@kafka-broker-3:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENERS: PLAINTEXT://kafka-broker-2:29092,EXTERNAL://0.0.0.0:9092,CONTROLLER://kafka-broker-2:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-2:29092,EXTERNAL://localhost:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      # Broker Configuration
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      # JMX
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  kafka-broker-3:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: tuuuur-kafka-3
+    hostname: kafka-broker-3
+    networks:
+      - tuuuur-net
+    ports:
+      - "9094:9092"     # Accès depuis le host (port décalé)
+      - "29094:29092"   # Accès inter-containers
+      - "9103:9101"     # JMX Prometheus exporter
+    environment:
+      # KRaft Configuration - CLUSTER_ID identique
+      CLUSTER_ID: rT63_zHrSiKRvyAuyi9IFA==
+      KAFKA_NODE_ID: 3
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-broker-1:9093,2@kafka-broker-2:9093,3@kafka-broker-3:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENERS: PLAINTEXT://kafka-broker-3:29092,EXTERNAL://0.0.0.0:9092,CONTROLLER://kafka-broker-3:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-3:29092,EXTERNAL://localhost:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      # Broker Configuration
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      # JMX
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  # ---------------------------------------------------------------------------
+  # JMX EXPORTERS - SECTION COMMENTÉE POUR MAINTENANT
+  # Les métriques Quarkus (application) sont prioritaires.
+  # Les JMX exporters peuvent être activation ultérieurement avec une image stable.
+  # 
+  # Pour réactiver:
+  # 1. Utiliser une image pré-construite stable (ex: adoptopenjdk/openjdk11:slim)
+  # 2. Ou créer une image Docker personnalisée avec JMX exporter pré-installé
+  # 3. Remplacer prometheus.yml pour scraper les ports 5556, 5557, 5558
+  # ---------------------------------------------------------------------------
+  # jmx-exporter-1:
+  #   ... (commented out)
+  # jmx-exporter-2:
+  #   ... (commented out)
+  # jmx-exporter-3:
+  #   ... (commented out)
+
   # ---------------------------------------------------------------------------
   # KAFKA TOPICS INITIALIZATION
-  # (Crée automatiquement tous les topics au démarrage du docker-compose)
+  # (Crée automatiquement tous les topics au démarrage avec réplication)
   # ---------------------------------------------------------------------------
   kafka-init-topics:
     image: confluentinc/cp-kafka:7.6.0
@@ -63,20 +152,26 @@ services:
     networks:
       - tuuuur-net
     depends_on:
-      kafka:
+      kafka-broker-1:
+        condition: service_healthy
+      kafka-broker-2:
+        condition: service_healthy
+      kafka-broker-3:
         condition: service_healthy
     entrypoint: >
       bash -c '
-      echo "Waiting for Kafka to be ready..." &&
+      echo "Waiting for Kafka cluster to be ready..." &&
       sleep 10 &&
-      echo "Creating topics..." &&
-      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic orders-events --partitions 3 --replication-factor 1 &&
-      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rank-events --partitions 3 --replication-factor 1 &&
-      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic stock-events --partitions 3 --replication-factor 1 &&
-      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic payment-events --partitions 3 --replication-factor 1 &&
-      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic analytics-stats --partitions 1 --replication-factor 1 &&
+      echo "Creating topics with replication-factor=3..." &&
+      kafka-topics --bootstrap-server kafka-broker-1:29092,kafka-broker-2:29092,kafka-broker-3:29092 --create --if-not-exists --topic orders-events --partitions 3 --replication-factor 3 &&
+      kafka-topics --bootstrap-server kafka-broker-1:29092,kafka-broker-2:29092,kafka-broker-3:29092 --create --if-not-exists --topic rank-events --partitions 3 --replication-factor 3 &&
+      kafka-topics --bootstrap-server kafka-broker-1:29092,kafka-broker-2:29092,kafka-broker-3:29092 --create --if-not-exists --topic stock-events --partitions 3 --replication-factor 3 &&
+      kafka-topics --bootstrap-server kafka-broker-1:29092,kafka-broker-2:29092,kafka-broker-3:29092 --create --if-not-exists --topic payment-events --partitions 3 --replication-factor 3 &&
+      kafka-topics --bootstrap-server kafka-broker-1:29092,kafka-broker-2:29092,kafka-broker-3:29092 --create --if-not-exists --topic analytics-stats --partitions 1 --replication-factor 3 &&
       echo "Listing created topics:" &&
-      kafka-topics --bootstrap-server kafka:29092 --list &&
+      kafka-topics --bootstrap-server kafka-broker-1:29092,kafka-broker-2:29092,kafka-broker-3:29092 --list &&
+      echo "Describing topics:" &&
+      kafka-topics --bootstrap-server kafka-broker-1:29092,kafka-broker-2:29092,kafka-broker-3:29092 --describe &&
       echo "Topics initialization completed successfully!"
       '
 
@@ -89,13 +184,13 @@ services:
     networks:
       - tuuuur-net
     depends_on:
-      kafka:
-        condition: service_healthy
+      kafka-init-topics:
+        condition: service_completed_successfully
     ports:
       - "8090:8080"
     environment:
-      KAFKA_CLUSTERS_0_NAME: tuuuur-local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_NAME: tuuuur-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-broker-1:29092,kafka-broker-2:29092,kafka-broker-3:29092
       KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: tuuuur-connect
       KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://kafka-connect:8083
 
@@ -114,7 +209,7 @@ services:
     ports:
       - "8083:8083"
     environment:
-      CONNECT_BOOTSTRAP_SERVERS: 'kafka:29092'
+      CONNECT_BOOTSTRAP_SERVERS: 'kafka-broker-1:29092,kafka-broker-2:29092,kafka-broker-3:29092'
       CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
       CONNECT_REST_PORT: 8083
       CONNECT_GROUP_ID: tuuuur-connect-group
@@ -122,9 +217,9 @@ services:
       CONNECT_CONFIG_STORAGE_TOPIC: _connect-configs
       CONNECT_OFFSET_STORAGE_TOPIC: _connect-offsets
       CONNECT_STATUS_STORAGE_TOPIC: _connect-status
-      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
-      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
-      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 3
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 3
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 3
       CONNECT_OFFSET_FLUSH_INTERVAL_MS: 10000
       # Serializers
       CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
@@ -175,7 +270,7 @@ services:
       - "3000:3000"
     environment:
       GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: tuuuur2025
+      GF_SECURITY_ADMIN_PASSWORD: admin
       GF_USERS_ALLOW_SIGN_UP: 'false'
       GF_INSTALL_PLUGINS: grafana-piechart-panel
     volumes:

@@ -1,7 +1,10 @@
 package upjv.insset.kafka.consumers;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import io.smallrye.reactive.messaging.annotations.Blocking;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 import org.eclipse.microprofile.reactive.messaging.Message;
 import org.jboss.logging.Logger;
@@ -51,6 +54,9 @@ public class OrderPartitionedConsumer {
 
     private static final Logger LOG = Logger.getLogger(OrderPartitionedConsumer.class);
 
+    @Inject
+    MeterRegistry meterRegistry;
+
     /**
      * Consomme les OrderCreatedEvents depuis le topic 'orders-events'.
      *
@@ -82,6 +88,9 @@ public class OrderPartitionedConsumer {
             event.unitPrice * event.quantity
         );
 
+        // Start timing for processing latency
+        Timer.Sample sample = Timer.start(meterRegistry);
+
         try {
             // ── Logique métier ──────────────────────────────────────
             // En pratique, vous pourriez :
@@ -94,6 +103,19 @@ public class OrderPartitionedConsumer {
             // Pour cette démo, on log simplement
             LOG.infof("✅ Traitement de OrderCreatedEvent [%s] RÉUSSI", event.orderId);
 
+            // Record processing time
+            sample.stop(Timer.builder("tuuuur.partitioned.processing.time")
+                .description("Processing latency for partitioned consumer")
+                .publishPercentiles(0.5, 0.95, 0.99)
+                .tag("consumer_group", "orders-partition-processor-grp")
+                .tag("status", "success")
+                .register(meterRegistry));
+
+            // Count successful processes by partition
+            meterRegistry.counter("tuuuur.partitioned.messages.processed",
+                "status", "success",
+                "consumer_group", "orders-partition-processor-grp").increment();
+
             // Valider explicitement l'offset
             // Cela signale à Kafka qu'on a consommé le message avec succès
             return message.ack();
@@ -103,6 +125,19 @@ public class OrderPartitionedConsumer {
                 "❌ ERREUR traitement OrderCreatedEvent [%s] : %s",
                 event.orderId, e.getMessage());
             e.printStackTrace();
+
+            // Record error processing time
+            sample.stop(Timer.builder("tuuuur.partitioned.processing.time")
+                .description("Processing latency for partitioned consumer")
+                .publishPercentiles(0.5, 0.95, 0.99)
+                .tag("consumer_group", "orders-partition-processor-grp")
+                .tag("status", "error")
+                .register(meterRegistry));
+
+            // Count failed processes
+            meterRegistry.counter("tuuuur.partitioned.messages.processed",
+                "status", "error",
+                "consumer_group", "orders-partition-processor-grp").increment();
 
             // Signaler l'erreur (DLQ si configurée, ou rejeu après retry)
             return message.nack(e);
