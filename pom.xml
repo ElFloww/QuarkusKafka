@@ -65,7 +65,7 @@
         </dependency>
 
         <!-- ============================================================== -->
-        <!-- KAFKA STREAMS – Quarkus Kafka Streams (Étape 5)                -->
+        <!-- KAFKA STREAMS – Topologies de streaming                        -->
         <!-- ============================================================== -->
         <dependency>
             <groupId>io.quarkus</groupId>

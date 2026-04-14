@@ -278,3 +278,108 @@ services:
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
     restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # TUUUUR CONSUMER – Projet Consumer
+  # Kafka Consumers (OrderPartitionedConsumer) + Streams Analytics
+  # ---------------------------------------------------------------------------
+  tuuuur-consumer:
+    build:
+      context: ../consumer
+      dockerfile: Dockerfile
+    container_name: tuuuur-consumer
+    hostname: tuuuur-consumer
+    networks:
+      - tuuuur-net
+    depends_on:
+      kafka-broker-1:
+        condition: service_healthy
+      kafka-broker-2:
+        condition: service_healthy
+      kafka-broker-3:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka-broker-1:29092,kafka-broker-2:29092,kafka-broker-3:29092
+      QUARKUS_LOG_LEVEL: INFO
+      QUARKUS_LOG_CATEGORY_UPJV_INSSET_LEVEL: DEBUG
+    volumes:
+      - /tmp/tuuuur-kafka-streams:/tmp/tuuuur-kafka-streams
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/q/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # TUUUUR CONSUMER 2 – Réplique Consumer
+  # Pour le scaling distribué et la tolérance de pannes
+  # ---------------------------------------------------------------------------
+  tuuuur-consumer-2:
+    build:
+      context: ../consumer
+      dockerfile: Dockerfile
+    container_name: tuuuur-consumer-2
+    hostname: tuuuur-consumer-2
+    networks:
+      - tuuuur-net
+    depends_on:
+      kafka-broker-1:
+        condition: service_healthy
+      kafka-broker-2:
+        condition: service_healthy
+      kafka-broker-3:
+        condition: service_healthy
+    ports:
+      - "8082:8081"
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka-broker-1:29092,kafka-broker-2:29092,kafka-broker-3:29092
+      QUARKUS_LOG_LEVEL: INFO
+      QUARKUS_LOG_CATEGORY_UPJV_INSSET_LEVEL: DEBUG
+    volumes:
+      - /tmp/tuuuur-kafka-streams-2:/tmp/tuuuur-kafka-streams
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/q/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # TUUUUR CONSUMER 3 – Réplique Consumer
+  # Pour le scaling distribué et la tolérance de pannes
+  # ---------------------------------------------------------------------------
+  tuuuur-consumer-3:
+    build:
+      context: ../consumer
+      dockerfile: Dockerfile
+    container_name: tuuuur-consumer-3
+    hostname: tuuuur-consumer-3
+    networks:
+      - tuuuur-net
+    depends_on:
+      kafka-broker-1:
+        condition: service_healthy
+      kafka-broker-2:
+        condition: service_healthy
+      kafka-broker-3:
+        condition: service_healthy
+    ports:
+      - "8084:8081"
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka-broker-1:29092,kafka-broker-2:29092,kafka-broker-3:29092
+      QUARKUS_LOG_LEVEL: INFO
+      QUARKUS_LOG_CATEGORY_UPJV_INSSET_LEVEL: DEBUG
+    volumes:
+      - /tmp/tuuuur-kafka-streams-3:/tmp/tuuuur-kafka-streams
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/q/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
+    restart: unless-stopped
