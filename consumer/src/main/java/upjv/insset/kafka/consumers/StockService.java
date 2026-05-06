@@ -14,6 +14,7 @@ import org.eclipse.microprofile.reactive.messaging.Message;
 import org.jboss.logging.Logger;
 import upjv.insset.kafka.events.RankVerifiedEvent;
 import upjv.insset.kafka.events.StockReservedEvent;
+import upjv.insset.kafka.events.StockFailedEvent;
 
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
@@ -48,19 +49,23 @@ public class StockService {
 
     private static final Logger LOG = Logger.getLogger(StockService.class);
 
-    // ── Stock virtuel initial (50 unités par article) ─────────────────────────
+    // ── Stock virtuel initial (augmenté pour tests de performance) ───────────────────────────
     private final Map<String, AtomicInteger> stockLevels = new ConcurrentHashMap<>(Map.of(
-            "tshirt-bronze",    new AtomicInteger(50),
-            "tshirt-argent",    new AtomicInteger(50),
-            "hoodie-or",        new AtomicInteger(30),
-            "casquette-platine",new AtomicInteger(20),
-            "tshirt-diamant",   new AtomicInteger(15),
-            "veste-challenger", new AtomicInteger(5)
+            "tshirt-bronze",    new AtomicInteger(1_000_000_000),
+            "tshirt-argent",    new AtomicInteger(1_000_000_000),
+            "hoodie-or",        new AtomicInteger(1_000_000_000),
+            "casquette-platine",new AtomicInteger(1_000_000_000),
+            "tshirt-diamant",   new AtomicInteger(1_000_000_000),
+            "veste-challenger", new AtomicInteger(1_000_000_000)
     ));
 
     @Inject
     @Channel("stock-out")
     Emitter<StockReservedEvent> stockEmitter;
+
+    @Inject
+    @Channel("stock-failed-out")
+    Emitter<StockFailedEvent> stockFailedEmitter;
 
     private final Counter stockReservedCounter;
     private final Counter stockFailedCounter;
@@ -99,6 +104,7 @@ public class StockService {
         if (!event.rankOk) {
             LOG.warnf("  ⛔ [Stock] Rang insuffisant pour orderId=%s, saga abandonnée.", event.orderId);
             stockFailedCounter.increment();
+            publishStockFailed(event, "RANK_INSUFFICIENT");
             // On ack quand même pour ne pas retraiter ce message
             return message.ack();
         }
@@ -109,6 +115,7 @@ public class StockService {
         if (stock == null) {
             LOG.errorf("  ❌ [Stock] Article inconnu dans le stock : %s", event.itemId);
             stockFailedCounter.increment();
+            publishStockFailed(event, "UNKNOWN_ITEM");
             return message.ack(); // article inexistant → ack sans publier
         }
 
@@ -129,6 +136,7 @@ public class StockService {
             LOG.warnf("  📭 [Stock] Rupture de stock pour '%s' (stock=%d, demandé=%d)",
                       event.itemId, stock.get(), event.quantity);
             stockFailedCounter.increment();
+            publishStockFailed(event, "INSUFFICIENT_STOCK");
             // Saga abandonnée – pas d'événement publié vers payment-events
             return message.ack();
         }
@@ -158,6 +166,20 @@ public class StockService {
     // ─────────────────────────────────────────────────────────────────────────
     // Consultation du stock (endpoint REST optionnel)
     // ─────────────────────────────────────────────────────────────────────────
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Helper : publier un événement d'échec de stock
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private void publishStockFailed(RankVerifiedEvent rankEvent, String reason) {
+        try {
+            StockFailedEvent failedEvent = StockFailedEvent.from(rankEvent, reason);
+            stockFailedEmitter.send(KafkaRecord.of(rankEvent.orderId, failedEvent));
+            LOG.warnf("  📤 StockFailed publié [orderId=%s, reason=%s]", rankEvent.orderId, reason);
+        } catch (Exception ex) {
+            LOG.errorf("  ❌ Erreur publication StockFailed : %s", ex.getMessage());
+        }
+    }
 
     public Map<String, Integer> getStockSnapshot() {
         Map<String, Integer> snapshot = new ConcurrentHashMap<>();

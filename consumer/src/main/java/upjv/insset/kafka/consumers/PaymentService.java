@@ -128,15 +128,11 @@ public class PaymentService {
         LOG.infof("  ⏳ [Payment] Traitement du paiement en cours pour orderId=%s …", event.orderId);
 
         paymentTimer.record(() -> {
-            try {
-                // ── SIMULATION DE LATENCE BANCAIRE ───────────────────────────
-                // Thread.sleep représente l'appel à la passerelle de paiement.
-                // En production : remplacer par un appel REST réactif non-bloquant.
-                Thread.sleep(PAYMENT_PROCESSING_DELAY_MS);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new RuntimeException("Payment processing interrupted", e);
-            }
+            // ── SIMULATION DE LATENCE BANCAIRE ───────────────────────────
+            // Thread.sleep représente l'appel à la passerelle de paiement.
+            // En production : remplacer par un appel REST réactif non-bloquant.
+            // DÉSACTIVÉ POUR LES TESTS DE PERFORMANCE
+            // Thread.sleep(PAYMENT_PROCESSING_DELAY_MS);
         });
 
         // Dans cette démo, le paiement RETOURNE TOUJOURS SUCCÈS

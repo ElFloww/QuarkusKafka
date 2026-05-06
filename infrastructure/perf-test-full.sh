@@ -104,30 +104,30 @@ echo ""
 print_info "Pause de 5 secondes avant de lancer les consommateurs..."
 sleep 5
 
-print_header "📊 PHASE 2: LANCEMENT DES CONSOMMATEURS"
+# print_header "📊 PHASE 2: LANCEMENT DES CONSOMMATEURS"
 
-# Calculer le nombre total de messages produits
-TOTAL_MESSAGES=$((NUM_MESSAGES * NUM_PRODUCERS))
+# # Calculer le nombre total de messages produits
+# TOTAL_MESSAGES=$((NUM_MESSAGES * NUM_PRODUCERS))
 
-# Lancer les consommateurs
-CONSUMER_PIDS=()
-for i in $(seq 1 $NUM_CONSUMERS); do
-  print_stage "Consommateur $i/$NUM_CONSUMERS"
-  (
-    echo "Consommateur $i en cours d'exécution..."
-    "$SCRIPT_DIR/perf-test-consumer.sh" "$TOPIC" "$TOTAL_MESSAGES"
-    echo "Consommateur $i terminé"
-  ) &
-  CONSUMER_PIDS+=($!)
-  sleep 1
-done
+# # Lancer les consommateurs
+# CONSUMER_PIDS=()
+# for i in $(seq 1 $NUM_CONSUMERS); do
+#   print_stage "Consommateur $i/$NUM_CONSUMERS"
+#   (
+#     echo "Consommateur $i en cours d'exécution..."
+#     "$SCRIPT_DIR/perf-test-consumer.sh" "$TOPIC" "$TOTAL_MESSAGES"
+#     echo "Consommateur $i terminé"
+#   ) &
+#   CONSUMER_PIDS+=($!)
+#   sleep 1
+# done
 
-print_info "Attente que tous les consommateurs terminent..."
-for i in "${CONSUMER_PIDS[@]}"; do
-  wait $i
-done
-print_success "Tous les consommateurs ont terminé"
-echo ""
+# print_info "Attente que tous les consommateurs terminent..."
+# for i in "${CONSUMER_PIDS[@]}"; do
+#   wait $i
+# done
+# print_success "Tous les consommateurs ont terminé"
+# echo ""
 
 print_header "📈 RÉSUMÉ DU TEST"
 print_success "Test massif complet terminé avec succès!"

@@ -9,6 +9,7 @@ import org.eclipse.microprofile.reactive.messaging.Message;
 import org.jboss.logging.Logger;
 import upjv.insset.kafka.events.RankVerifiedEvent;
 import upjv.insset.kafka.events.StockReservedEvent;
+import upjv.insset.kafka.events.PaymentSucceededEvent;
 
 import java.util.concurrent.CompletionStage;
 
@@ -87,6 +88,29 @@ public class OrderSagaStatusUpdater {
         meterRegistry.counter("tuuuur.saga.stock.events",
             "status", "reserved",
             "consumer_group", "order-service-stock-observer").increment();
+
+        return message.ack();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Observer payment-events → mise à jour statut PAYMENT_SUCCEEDED / CONFIRMED
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Incoming("payment-observer-in")
+    @Blocking
+    public CompletionStage<Void> onPaymentSucceeded(Message<PaymentSucceededEvent> message) {
+        PaymentSucceededEvent event = message.getPayload();
+
+        // Mettre à jour le statut à CONFIRMED quand le paiement est réussi
+        orderRepository.updateStatus(event.orderId, OrderStatus.CONFIRMED);
+        orderRepository.setTransactionId(event.orderId, event.transactionId);
+        LOG.infof("📊 [StatusUpdater] Order %s → CONFIRMED (txId: %s)", 
+                  event.orderId, event.transactionId);
+
+        // Track payment event processing
+        meterRegistry.counter("tuuuur.saga.payment.events",
+            "status", "succeeded",
+            "consumer_group", "order-service-payment-observer").increment();
 
         return message.ack();
     }
