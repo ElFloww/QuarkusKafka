@@ -1,0 +1,478 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "panels": [],
+      "title": "🚨 KPI P1 - SANTÉ CRITIQUE & LATENCE (Temps Réel)",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "sum(kafka_server_replicamanager_value{name=\"UnderReplicatedPartitions\"})",
+          "refId": "A"
+        }
+      ],
+      "title": "Under Replicated",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "sum(kafka_controller_kafkacontroller_value{name=\"OfflinePartitionsCount\"})",
+          "refId": "A"
+        }
+      ],
+      "title": "Offline Partitions",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 },
+              { "color": "red", "value": 2 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "sum(kafka_controller_kafkacontroller_value{name=\"ActiveControllerCount\"})",
+          "refId": "A"
+        }
+      ],
+      "title": "Active Controller",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Millisecondes",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 12, "x": 12, "y": 1 },
+      "id": 5,
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right" },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "expr": "max(kafka_network_requestmetrics_99thpercentile{name=\"TotalTimeMs\", request=\"Produce\"})",
+          "legendFormat": "Produce P99 Latency (ms)",
+          "refId": "A"
+        }
+      ],
+      "title": "Latence Produce (P99)",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 6,
+      "panels": [],
+      "title": "🚀 DÉBIT GLOBAL & PAR BROKER / TOPIC (P1 & P2)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 15, "lineWidth": 2 }
+        }
+      },
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 6 },
+      "id": 7,
+      "targets": [
+        {
+          "expr": "sum(rate(kafka_server_brokertopicmetrics_count{name=\"MessagesInPerSec\"}[1m]))",
+          "legendFormat": "Global Messages/s",
+          "refId": "A"
+        }
+      ],
+      "title": "Débit Global (Messages/sec)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 10, "lineWidth": 2 }
+        }
+      },
+      "gridPos": { "h": 7, "w": 8, "x": 8, "y": 6 },
+      "id": 8,
+      "targets": [
+        {
+          "expr": "sum by (instance) (rate(kafka_server_brokertopicmetrics_count{name=\"MessagesInPerSec\"}[1m]))",
+          "legendFormat": "{{instance}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Production par Broker (Messages/sec)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "bar", "fillOpacity": 80, "lineWidth": 1 }
+        }
+      },
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 6 },
+      "id": 9,
+      "targets": [
+        {
+          "expr": "sum by (topic) (kafka_producer_topic_record_send_rate{topic!=\"\"})",
+          "legendFormat": "{{topic}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Production par Topic (Messages/sec)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 15, "lineWidth": 2 },
+          "unit": "decbytes"
+        }
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 13 },
+      "id": 10,
+      "targets": [
+        {
+          "expr": "sum by (instance) (rate(kafka_server_brokertopicmetrics_count{name=\"BytesInPerSec\"}[1m]))",
+          "legendFormat": "IN: {{instance}}",
+          "refId": "A"
+        },
+        {
+          "expr": "-sum by (instance) (rate(kafka_server_brokertopicmetrics_count{name=\"BytesOutPerSec\"}[1m]))",
+          "legendFormat": "OUT: {{instance}}",
+          "refId": "B"
+        }
+      ],
+      "title": "Bytes In / Out par Broker (B/s)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 20, "lineWidth": 2 }
+        }
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 13 },
+      "id": 11,
+      "targets": [
+        {
+          "expr": "sum by (topic) (max by (consumergroup, topic) (kafka_consumergroup_lag{consumergroup=~\"gamesync-service-grp|stock-service-grp|payment-service-grp|order-service-payment-grp|orders-partition-processor-grp|analytics-monitoring-grp\"}))",
+          "legendFormat": "- {{topic}}",
+          "refId": "A"
+        }
+      ],
+      "title": "🐌 Consumer Group Lag (P1)",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 20 },
+      "id": 12,
+      "panels": [],
+      "title": "⚖️ RÉPARTITION, LEADERSHIP & ISR (P1 & P2)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 10, "lineWidth": 2 }
+        }
+      },
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 21 },
+      "id": 13,
+      "targets": [
+        {
+          "expr": "sum by (instance) (kafka_server_replicamanager_value{name=\"LeaderCount\"})",
+          "legendFormat": "{{instance}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Leader Count par Broker",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 10, "lineWidth": 2 }
+        }
+      },
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 21 },
+      "id": 14,
+      "targets": [
+        {
+          "expr": "sum by (instance) (kafka_server_replicamanager_value{name=\"PartitionCount\"})",
+          "legendFormat": "{{instance}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Partition Count par Broker",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "bars", "fillOpacity": 80, "lineWidth": 1 }
+        }
+      },
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 21 },
+      "id": 15,
+      "targets": [
+        {
+          "expr": "max by (topic) (kafka_log_log_value{name=\"LogEndOffset\", topic=~\"orders-events|rank-events|stock-events|payment-events|analytics-stats\"}) - min by (topic) (kafka_log_log_value{name=\"LogEndOffset\", topic=~\"orders-events|rank-events|stock-events|payment-events|analytics-stats\"})",
+          "legendFormat": "{{topic}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Déséquilibre de Taille par Topic (Skew)",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 27 },
+      "id": 16,
+      "panels": [],
+      "title": "☕ JVM (P2) & RÉPLICATION (P1)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 20, "lineWidth": 2 },
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 28 },
+      "id": 17,
+      "targets": [
+        {
+          "expr": "100 * sum by(instance) (java_lang_memory_heapmemoryusage_used) / sum by(instance) (java_lang_memory_heapmemoryusage_max)",
+          "legendFormat": "{{instance}} Heap %",
+          "refId": "A"
+        }
+      ],
+      "title": "Utilisation Mémoire Heap (%)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 20, "lineWidth": 2 }
+        }
+      },
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 28 },
+      "id": 18,
+      "targets": [
+        {
+          "expr": "sum by (instance) (rate(java_lang_g1_young_generation_collectiontime[1m]))",
+          "legendFormat": "{{instance}} - GC Time",
+          "refId": "A"
+        }
+      ],
+      "title": "Temps Garbage Collector (rate)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 20, "lineWidth": 2 }
+        }
+      },
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 28 },
+      "id": 19,
+      "targets": [
+        {
+          "expr": "sum(rate(kafka_server_replicamanager_count{name=\"IsrShrinksPerSec\"}[1m]))",
+          "legendFormat": "ISR Shrinks / sec",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(kafka_server_replicamanager_count{name=\"IsrExpandsPerSec\"}[1m]))",
+          "legendFormat": "ISR Expands / sec",
+          "refId": "B"
+        }
+      ],
+      "title": "Changements ISR (In-Sync Replicas)",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "1s",
+  "schemaVersion": 39,
+  "tags": [
+    "kafka",
+    "realtime",
+    "perf-testing",
+    "stress"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "Prometheus",
+          "value": "Prometheus"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "name": "datasource",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "type": "datasource"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-5m",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "1s",
+      "5s",
+      "10s",
+      "30s",
+      "1m"
+    ]
+  },
+  "timezone": "browser",
+  "title": "⚡ Tuuuur - Performance Temps Réel (1s Refresh)",
+  "uid": "tuuuur-kafka-realtime",
+  "version": 1
+}

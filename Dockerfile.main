@@ -10,12 +10,13 @@ COPY src/ src/
 RUN mvn clean package -DskipTests -Dquarkus.package.type=uber-jar
 
 # Image de runtime
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
 # Copier le JAR packagé depuis la phase de build
-COPY --from=builder /app/target/quarkus-app/quarkus-run.jar app.jar
+#COPY --from=builder /app/target/quarkus-app/quarkus-run.jar app.jar
+COPY --from=builder /app/target/tuuuur-merch-*-runner.jar app.jar
 
 # Metadata
 LABEL maintainer="Tuuuur Team"

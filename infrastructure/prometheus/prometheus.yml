@@ -41,9 +41,20 @@ scrape_configs:
           service_type: "quarkus"
           env: "dev"
 
-  # -- KAFKA BROKER JMX EXPORTERS (DISABLED FOR NOW) ----
-  # Priority: Quarkus application metrics are more important
-  # Can be re-enabled later with a stable container image
-  # - job_name: "kafka-broker-1"
-  # - job_name: "kafka-broker-2"
-  # - job_name: "kafka-broker-3"
+  # -- KAFKA BROKER JMX EXPORTERS --------------------------------------------
+  - job_name: "kafka-broker-1"
+    static_configs:
+      - targets: ["jmx-exporter-1:5556"]
+
+  - job_name: "kafka-broker-2"
+    static_configs:
+      - targets: ["jmx-exporter-2:5557"]
+
+  - job_name: "kafka-broker-3"
+    static_configs:
+      - targets: ["jmx-exporter-3:5558"]
+
+  # -- KAFKA EXPORTER (consumer groups, topics, lag) -------------------------
+  - job_name: "kafka-exporter"
+    static_configs:
+      - targets: ["kafka-exporter:9308"]

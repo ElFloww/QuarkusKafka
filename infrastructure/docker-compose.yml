@@ -46,7 +46,7 @@ services:
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
       # JMX pour Prometheus
       KAFKA_JMX_PORT: 9101
-      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_JMX_HOSTNAME: kafka-broker-1
     healthcheck:
       test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
       interval: 15s
@@ -86,7 +86,7 @@ services:
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
       # JMX
       KAFKA_JMX_PORT: 9101
-      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_JMX_HOSTNAME: kafka-broker-2
     healthcheck:
       test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
       interval: 15s
@@ -126,7 +126,7 @@ services:
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
       # JMX
       KAFKA_JMX_PORT: 9101
-      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_JMX_HOSTNAME: kafka-broker-3
     healthcheck:
       test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
       interval: 15s
@@ -138,21 +138,73 @@ services:
     #       cpus: '1.0'
 
   # ---------------------------------------------------------------------------
-  # JMX EXPORTERS - SECTION COMMENTÉE POUR MAINTENANT
-  # Les métriques Quarkus (application) sont prioritaires.
-  # Les JMX exporters peuvent être activation ultérieurement avec une image stable.
-  # 
-  # Pour réactiver:
-  # 1. Utiliser une image pré-construite stable (ex: adoptopenjdk/openjdk11:slim)
-  # 2. Ou créer une image Docker personnalisée avec JMX exporter pré-installé
-  # 3. Remplacer prometheus.yml pour scraper les ports 5556, 5557, 5558
+  # JMX EXPORTERS - Kafka broker metrics
   # ---------------------------------------------------------------------------
-  # jmx-exporter-1:
-  #   ... (commented out)
-  # jmx-exporter-2:
-  #   ... (commented out)
-  # jmx-exporter-3:
-  #   ... (commented out)
+  jmx-exporter-1:
+    image: bitnami/jmx-exporter
+    container_name: tuuuur-jmx-exporter-1
+    hostname: jmx-exporter-1
+    networks:
+      - tuuuur-net
+    depends_on:
+      kafka-broker-1:
+        condition: service_healthy
+    ports:
+      - "5556:5556"
+    volumes:
+      - ./prometheus/jmx-exporter-broker-1.yml:/etc/jmx-exporter/config.yml:ro
+    command: ["5556", "/etc/jmx-exporter/config.yml"]
+
+  jmx-exporter-2:
+    image: bitnami/jmx-exporter
+    container_name: tuuuur-jmx-exporter-2
+    hostname: jmx-exporter-2
+    networks:
+      - tuuuur-net
+    depends_on:
+      kafka-broker-2:
+        condition: service_healthy
+    ports:
+      - "5557:5557"
+    volumes:
+      - ./prometheus/jmx-exporter-broker-2.yml:/etc/jmx-exporter/config.yml:ro
+    command: ["5557", "/etc/jmx-exporter/config.yml"]
+
+  jmx-exporter-3:
+    image: bitnami/jmx-exporter
+    container_name: tuuuur-jmx-exporter-3
+    hostname: jmx-exporter-3
+    networks:
+      - tuuuur-net
+    depends_on:
+      kafka-broker-3:
+        condition: service_healthy
+    ports:
+      - "5558:5558"
+    volumes:
+      - ./prometheus/jmx-exporter-broker-3.yml:/etc/jmx-exporter/config.yml:ro
+    command: ["5558", "/etc/jmx-exporter/config.yml"]
+
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:v1.7.0
+    container_name: tuuuur-kafka-exporter
+    hostname: kafka-exporter
+    networks:
+      - tuuuur-net
+    depends_on:
+      kafka-broker-1:
+        condition: service_healthy
+      kafka-broker-2:
+        condition: service_healthy
+      kafka-broker-3:
+        condition: service_healthy
+    ports:
+      - "9308:9308"
+    command:
+      - "--kafka.server=kafka-broker-1:29092"
+      - "--kafka.server=kafka-broker-2:29092"
+      - "--kafka.server=kafka-broker-3:29092"
+      - "--web.listen-address=:9308"
 
   # ---------------------------------------------------------------------------
   # KAFKA TOPICS INITIALIZATION
@@ -205,6 +257,27 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-broker-1:29092,kafka-broker-2:29092,kafka-broker-3:29092
       KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: tuuuur-connect
       KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://kafka-connect:8083
+
+  # ---------------------------------------------------------------------------
+  # TUUUUR APP – Application principale lancée depuis la racine du projet
+  # Expose l'UI / API Quarkus sur le port 8080
+  # ---------------------------------------------------------------------------
+  tuuuur-app:
+    build:
+      context: ..
+      dockerfile: Dockerfile.main
+    container_name: tuuuur-app
+    hostname: tuuuur-app
+    networks:
+      - tuuuur-net
+    depends_on:
+      kafka-init-topics:
+        condition: service_completed_successfully
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka-broker-1:29092,kafka-broker-2:29092,kafka-broker-3:29092
+      QUARKUS_HTTP_PORT: 8080
 
   # ---------------------------------------------------------------------------
   # KAFKA CONNECT (avec FileStreamSink connector inclus dans l'image)
